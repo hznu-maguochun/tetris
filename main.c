@@ -22,22 +22,17 @@
 
 
 
-/***************************************************************
- VisualStudio 2010 用户注意：
-    将Character Set设置为 Use Multibyte Character Set
-	否则中文显示不正常
-***************************************************************/
-
 void KeyboardEventProcess(int key,int event);
 void MouseEventProcess(int x, int y, int button, int event);
-void TimerEventProcess(int timerID);/*?p????????^?I???*/
+void TimerEventProcess(int timerID);
 void CharEventProcess(char ch);
 
 
 // 全局变量
 double winwidth, winheight;   // 窗口尺寸
-int Flag_button=0,running=0;
+int game_running=0;
 int IF=0;
+struct Tetris t,*tetris=&t;
 
 // 清屏函数，provided in libgraphics
 //void DisplayClear(void); 
@@ -54,11 +49,11 @@ int IF=0;
 void Main()
 {
 	// 初始化窗口和图形系统
+	int scrWidth, scrHeight;
 	SetWindowTitle("Tetris Game");
-	
     InitGraphics();
-    //Randomize();/*初始化一个随机种子*/
-
+    Randomize();/*初始化一个随机种子*/
+    tetris->speed = 500;
 
     winwidth = GetWindowWidth();     //获取窗口宽度 
 	winheight = GetWindowHeight();   //获取窗口高度 
@@ -70,7 +65,7 @@ void Main()
 	registerKeyboardEvent(KeyboardEventProcess);// 键盘
 	registerMouseEvent(MouseEventProcess);      // 鼠标
 	registerTimerEvent(TimerEventProcess);      // 定时器
-	//display();
+	display();
 	
 }
 
@@ -85,13 +80,11 @@ void CharEventProcess(char ch)
 void KeyboardEventProcess(int key, int event)
 {
 	if (IF==0){
-	uiGetKeyboard(key,event); // 只在IF=0时响应击键输入 
-	
-	display(); // 刷新屏幕（主菜单） 
-
+		uiGetKeyboard(key,event); // 只在IF=0时响应击键输入 
+		display(); // 刷新屏幕（主菜单） 
 	}
 	
-	else if(IF==1)
+	else if(IF==2 || IF==3)
 	{
 		keyboard_game(key, event);
 	}	
@@ -103,6 +96,8 @@ void MouseEventProcess(int x, int y, int button, int event)
 {
 	uiGetMouse(x,y,button,event); //GUI获取鼠标
 	display(); // 刷新显示
+ 
+
 	/*while(Flag_game)
 	{
 		DisplayClear();

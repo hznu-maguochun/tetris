@@ -22,7 +22,8 @@
 #define blocklength  0.3333333
 
 extern int IF;
-static struct Tetris t,*tetris=&t;
+extern struct Tetris *tetris;
+extern int game_running;//跳转游戏界面flag和游戏运行状态
 int Temp,Temp1,Temp2; 	//temp,temp1,temp2用于记住和转换方块变量的值
 bool pau;
 
@@ -517,6 +518,7 @@ void MakeTetris(struct Tetris *tetris)
 
 void PrintTetris(struct Tetris *tetris)
 {
+	 
  	for(i=0;i<4;i++)
  	{
   		b[i]=checknum(tetris);         				//?}?Cb[4]???C????????????1
@@ -832,6 +834,7 @@ char *numtocolor(int num)
 void initial()
 {
 	int m,n;
+	game_running=1;
 	for(m = 0; m<30 ;m++)
 	{
 		for(n = 0; n<23; n++)

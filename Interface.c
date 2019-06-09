@@ -19,15 +19,18 @@
 
 #include "imgui.h"
 #include "Interface.h"
+#include "fileop.h"
+#include "game.h"
+
 
 
 #if defined(DEMO_MENU)
 
 extern double winwidth, winheight;
 struct Tetris *lastinfo;
-
+extern  struct Tetris *tetris; 
 static int show_more_buttons = 0; // 显示更多按钮 
-extern int Flag_button,running;//跳转游戏界面flag和游戏运行状态
+extern int game_running;//跳转游戏界面flag和游戏运行状态
 extern int IF;
 extern bool pau;
 
@@ -37,14 +40,16 @@ extern bool pau;
 void drawMenu()
 { 
 	static char * menuListSys[] = {"System",  
-	    "Menu",
-		"Setting", // 快捷键必须采用[Ctrl-X]格式，放在字符串的结尾
-		"Exit  | Ctrl-E"};
+		"Setting", 
+		"Exit  | Ctrl-E"}; // 快捷键必须采用[Ctrl-X]格式，放在字符串的结尾
 
-	static char * menuListTool[] = {"Operate",
+	static char * menuListOP[] = {"Operate",
 		"Start | Ctrl-S",
 		"Continue",
 		"Rank"};
+	static char * menuListRunningOP[] = {"Operate",
+		"Stop",
+		"Pause | ctrl-p"};
 
 	static char * menuListHelp[] = {"Help",
 	    "Introduction",
@@ -55,34 +60,19 @@ void drawMenu()
 	double y = winheight;
 	double h = fH*1.5; // 控件高度
 	double w = TextStringWidth(menuListHelp[0])*3; // 控件宽度
-	double wlist = TextStringWidth(menuListTool[3])*3.2;
+	double wlist = TextStringWidth(menuListOP[3])*3.2;
 	double xindent = winheight/20; // 缩进
 	int    selection;
-	//运行时的操作菜单不同于不运行时的菜单 
-/*	if (running){
-			strcpy(menuListTool[1],"stop");
-			strcpy(menuListTool[2],"pause | ctrl-p");
-		} 
-	else{
-		strcpy(menuListTool[1],"start | ctrl-s");
-		strcpy(menuListTool[2],"continue");
-	}
-	*/
+
+	
 	// menu bar
 	drawMenuBar(0,y-h,winwidth,h);
 	// system 菜单
 	selection = menuList(GenUIID(0), x, y-h, w, wlist, h, menuListSys, sizeof(menuListSys)/sizeof(menuListSys[0]));
 	if( selection==1 )
 	{ 
-	    IF = 0;
+	    IF = 1;
 	    DisplayClear(); 
-		drawMenu();
-    	drawButtons();
-    } 
-    else if( selection==2 )
-	{ 
-	    IF = 5;
-	    DisplayClear();
 		drawMenu();
     	drawButtons();
     } 
@@ -90,29 +80,52 @@ void drawMenu()
 	    exit(-1); // choose to exit
 	
 	// operate 菜单
-	selection = menuList(GenUIID(0),x+w,  y-h, w, wlist,h, menuListTool,sizeof(menuListTool)/sizeof(menuListTool[0]));
-	
-	switch(selection)
-	{
-		case 1:
-			IF = 1;
-			DisplayClear();
-			drawButtons();
-			break;
-		case 2:
-			IF = 6;
-			DisplayClear();
-		    drawButtons();
-		    break;
-		case 3:
-			IF = 3;
-			DisplayClear();
-			drawMenu();
-			drawButtons();
-			break;
-		default:
-			break;
+	if (game_running){
+		selection = menuList(GenUIID(0),x+w,  y-h, w, wlist,h, menuListRunningOP,sizeof(menuListRunningOP)/sizeof(menuListRunningOP[0]));	
+		switch(selection)
+		{
+			case 1:
+				IF = 4;
+	    		DisplayClear(); 
+				drawMenu();
+				drawButtons();
+				break;
+			case 2:
+				IF = 5;
+	    		DisplayClear();
+				drawMenu();
+			    drawButtons();
+			    break; 
+			default:
+				break;
+		}
+	}else{
+		selection = menuList(GenUIID(0),x+w,  y-h, w, wlist,h, menuListOP,sizeof(menuListOP)/sizeof(menuListOP[0]));	
+		switch(selection)
+		{
+			case 1:
+				IF = 2;
+	    		DisplayClear();
+				drawMenu();
+				drawButtons();
+				break;
+			case 2:
+				IF = 3;
+	    		DisplayClear();
+				drawMenu();
+			    drawButtons();
+			    break;
+			case 3:
+				IF = 8;
+	    		DisplayClear();
+				drawMenu();
+				drawButtons();
+				break;
+			default:
+				break;
+		}
 	}
+
 	
 	// Help 菜单
 	selection = menuList(GenUIID(0),x+2*w,y-h, w, wlist, h, menuListHelp,sizeof(menuListHelp)/sizeof(menuListHelp[0]));
@@ -120,7 +133,7 @@ void drawMenu()
 	{ 
 	    //DisplayClear();
     	//introducewindow();
-    	IF=2;
+    	IF=6;
     	DisplayClear();
 	    drawMenu();
     	drawButtons();
@@ -129,19 +142,9 @@ void drawMenu()
  	    IF = 7;
 	    DisplayClear();
 	    drawMenu();
+    	drawButtons();
 	    //AboutWindow();
     } 
-	// 显示菜单运行结果
-	/*x = winwidth/15;
-	y = winheight/8*7;
-	SetPenColor("Blue");
-	drawLabel(x, y-=h, "Most recently selected menu is:");
-	SetPenColor("Red");
-	drawLabel(x+xindent, y-=h, selectedLabel);
-	SetPenColor("Blue");
-	drawLabel(x, y-=h, "Control Variable Status");
-	SetPenColor("Red");
-	drawLabel(x+xindent, y-=h, show_more_buttons ? "More Buttons" : "Less Button");*/
 }
 
 #endif // #if defined(DEMO_MENU)
@@ -163,76 +166,72 @@ void drawButtons()
 	
 	switch(IF){
 		case 0:
-			if( button(GenUIID(4), x, y-2*(h+0.2), w, h, "Quit") ){
-				IF=4;
-				exit(-1);
-				//DisplayClear();
-				//drawButtons();
-			}
-		
-			if( button(GenUIID(6), x, y+(h+0.2), w, h, "Continue") )
+			if( button(GenUIID(0), x, y+2*(h+0.2), w, h, "Start") )
 			{
-				IF=6;
-				//displayclear(1);
+				IF=2; 
 				DisplayClear();
 				drawButtons();
 				break;
 			}
-		
-	    	if( button(GenUIID(1), x, y+2*(h+0.2), w, h, "Start") )
+			if( button(GenUIID(0), x, y+(h+0.2), w, h, "Continue") )
+			{
+				IF=3; 
+				DisplayClear();
+				drawButtons();
+				break;
+			}		
+		    if( button(GenUIID(0), x, y, w, h, "Settings") )
 			{
 				IF=1;
-				//displayclear(1);
-				DisplayClear();
-				drawButtons();
-				break;
-			}
-		
-	
-//	    	if( button(GenUIID(2), x, y+(h+0.1), w, h, "How to Play") )
-	//		{
-		//		IF=2;
-		//		DisplayClear();
-		//	    drawButtons();
-		//	}
-
-	    	if( button(GenUIID(3), x, y-(h+0.2), w, h, "Rank") )
-			{
-				IF=3;
-				DisplayClear();
-				drawMenu();
-				drawButtons();
-				break;
-			}
-		    if( button(GenUIID(5), x, y, w, h, "Settings") )
-			{
-				IF=5;
 				DisplayClear();
 				drawMenu();
 				drawButtons();
 				break;			
 			}
+	    	if( button(GenUIID(0), x, y-(h+0.2), w, h, "How To Play") )
+			{
+				IF=6;
+				DisplayClear();
+				drawMenu();
+				drawButtons();
+				break;
+			}
+	    	if( button(GenUIID(0), x, y-2*(h+0.2), w, h, "Rank") )
+			{
+				IF=8;
+				DisplayClear();
+				drawMenu();
+				drawButtons();
+				break;
+			}
+			if( button(GenUIID(0), x, y-3*(h+0.2), w, h, "Quit") ){ 
+				exit(-1); 
+			}
 			break;
-		case 1:
-			initial();
-			break; 
-		case 2:
-			introducewindow();
-			break;
-		case 3:
-			Rank();
-			break;
-		case 4:
-			Endwindow();
-			break;
-		case 5:
+		case 1: 
 			setting();
+			break; 
+		case 2: 
+		    game_running=1;
+			initial();
 			break;
-		case 6:
+		case 3: 
+			game_running=1;
 			Continue();
 			break;
-		case 7:
+		case 4: 
+			Endwindow();
+			break;
+		case 5: 
+			break;
+		case 6:  
+			introducewindow();
+			break;
+		case 7: 
 			//Aboutwindow();
+			break;
+		case 8: 
+			Rank();
 			break;
 	}
 }
@@ -275,13 +274,12 @@ void introducewindow(void)
 	SetPointSize(20);
 	SetPenColor("Orange");
     SetPenColor("Red");
-	DrawTextString("(Input Method of English Keybord)");
+//	DrawTextString("(Input Method of English Keybord)");
 	
-	SetPointSize(20);
-	if( button(GenUIID(4), 7, 1, 2, 1, "Back to Menu"))
+	SetPointSize(10);
+	if( button(GenUIID(0), 7, 1, 2, 0.6, "Back to Menu"))
 	{
-		IF=0;
-		//DisplayClear();
+		IF=0; 
 		SetPointSize(10);
 		display();
 	}
@@ -291,30 +289,46 @@ void introducewindow(void)
 void setting(void)
 {
 	SetPointSize(30);
-	MovePen(2,4.5);
+	MovePen(2,4.63);
     SetPenColor("Violet");
 	DrawTextString("Speed: ");
 	SetPointSize(20);
 	usePredefinedButtonColors(2);
+	MovePen(2,2.63);
+    SetPenColor("Violet");
+	DrawTextString("Current Speed: "); 
+	switch (tetris->speed){
+		case 500:
+			DrawTextString("1/500");
+			break;
+		case 250:
+			DrawTextString("1/250");
+			break;
+		case 100:
+			DrawTextString("1/100");
+			break;
+	}
 	if( button(GenUIID(5), 3.5, 4.5, 1.2, 0.5, "Slow"))
 	{
 		changespeed(1);
+		display();
 	}
 	else if( button(GenUIID(5), 5, 4.5, 1.2, 0.5, "Middle"))
 	{
 		changespeed(2);
+		display();
 	}
 	else if( button(GenUIID(5), 6.5, 4.5, 1.2, 0.5, "Fast"))
 	{
 		changespeed(3);
+		display();
 	}
 	
-	SetPointSize(30);
+	SetPointSize(10);
 	setButtonColors("Orange", "Yellow", "Cyan", "Violet", 1);
-	if( button(GenUIID(4), 7, 1, 2.3, 1, "Back to Menu"))
+	if( button(GenUIID(4), 7, 1, 2.3, 0.6, "Back to Menu"))
 	{
-		IF=0;
-		//DisplayClear();
+		IF=0; 
 		SetPointSize(10);
 		display();
 	}
@@ -342,43 +356,14 @@ void Endwindow(void)
 void display()
 {
 	//转入游戏界面
-	/*if(Flag_game && !running)
+	if(game_running)
 	{
-		MakePlayingWindow(tetris);
+	//	MakePlayingWindow(tetris);
+		return;
 	}
-	else */
-	
-		// 清屏
-		if (IF==0||IF==2||IF == 3||IF==5 ||IF == 7) 
-	        {
-	        DisplayClear();	
-	        drawMenu();
-			}
-	    //else if(IF == 1||IF == 6)
-	      //  displayclear(1);
-		
-	//	#if defined(DEMO_MENU)
-		// 绘制和处理菜单
-	//	if(IF==0||IF==2)  
-	//	drawMenu();
-	//	#endif
-		
-		
-		#if defined(DEMO_BUTTON)
-		// 按钮
-		drawButtons();
-		#endif
-
-		
-		/*#if defined(DEMO_EDITBOX)
-		// 编辑文本字符串
-		drawEditText();  
-		#endif*/ 
-
-		// 将绘制的结果put到屏幕上
-		//UpdateDisplay();
-
-	
+	DisplayClear();	
+	drawMenu();
+	drawButtons();	
 }
 
 
