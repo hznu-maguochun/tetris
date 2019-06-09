@@ -76,8 +76,11 @@ void drawMenu()
 		drawMenu();
     	drawButtons();
     } 
-	else if(selection == 2)
-	    exit(-1); // choose to exit
+	else if(selection == 2){
+		IF=4;
+		drawButtons();
+	}
+	   
 	
 	// operate 菜单
 	if (game_running){
@@ -205,7 +208,8 @@ void drawButtons()
 				break;
 			}
 			if( button(GenUIID(0), x, y-3*(h+0.2), w, h, "Quit") ){ 
-				exit(-1); 
+				IF=4;
+				drawButtons();
 			}
 			break;
 		case 1: 
@@ -217,6 +221,8 @@ void drawButtons()
 			break;
 		case 3: 
 			game_running=1;
+			initial();
+			CleanTetris(tetris);
 			Continue();
 			break;
 		case 4: 
@@ -296,31 +302,34 @@ void setting(void)
 	usePredefinedButtonColors(2);
 	MovePen(2,2.63);
     SetPenColor("Violet");
-	DrawTextString("Current Speed: "); 
+	DrawTextString("Current Speed:      "); 
 	switch (tetris->speed){
 		case 500:
-			DrawTextString("1/500");
+			DrawTextString("Slow");
 			break;
 		case 250:
-			DrawTextString("1/250");
+			DrawTextString(" Mid");
 			break;
 		case 100:
-			DrawTextString("1/100");
+			DrawTextString("Fast");
 			break;
 	}
 	if( button(GenUIID(5), 3.5, 4.5, 1.2, 0.5, "Slow"))
 	{
 		changespeed(1);
+	SetPointSize(10);
 		display();
 	}
 	else if( button(GenUIID(5), 5, 4.5, 1.2, 0.5, "Middle"))
 	{
 		changespeed(2);
+	SetPointSize(10);
 		display();
 	}
 	else if( button(GenUIID(5), 6.5, 4.5, 1.2, 0.5, "Fast"))
 	{
 		changespeed(3);
+	SetPointSize(10);
 		display();
 	}
 	
@@ -337,15 +346,16 @@ void setting(void)
 void Endwindow(void)
 {
 	DisplayClear();
-	MovePen(5,5);
+	MovePen(4.5,4);
+	SetPointSize(35);
 	DrawTextString("END");
-	SetPointSize(20);
-	if( button(GenUIID(4), 7, 1, 2, 1, "Back to Menu"))
+	SetPointSize(10);
+	if( button(GenUIID(4), 1, 1, 2, 0.6, "Back to Main Menu"))
 		{
 			IF=0;
 			display();
 		}
-	else if( button(GenUIID(4), 7, 5, 2, 1, "QUIT"))
+	else if( button(GenUIID(4), 7, 1, 2, 0.6, "QUIT"))
 		{
 			exit(-1);
 		}
@@ -357,8 +367,17 @@ void display()
 {
 	//转入游戏界面
 	if(game_running)
-	{
-	//	MakePlayingWindow(tetris);
+	{ 
+		SetPointSize(10);
+	if( button(GenUIID(0), 7.5, 0.4, 2, 0.6, "Back to Main Menu"))
+		{
+			IF=0;
+			CleanTetris(tetris);
+			InitGraphics();
+			game_running=0;
+			cancelTimer(1);
+			display();
+		}
 		return;
 	}
 	DisplayClear();	

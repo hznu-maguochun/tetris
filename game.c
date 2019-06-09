@@ -323,6 +323,8 @@ void MakePlayingWindow(struct Tetris *tetris)
 	
 	
 	SetPenColor("Black");
+	
+
 			
 	
 }
