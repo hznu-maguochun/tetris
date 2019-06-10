@@ -12,6 +12,7 @@ void WriteRecordFile(UserRecordLinkList *p){
 	UserRecordNode *tempPlayer;
 	if((fp=fopen("myrecordALL.txt","w+"))==NULL){
 		printf("ERROR ON WRITING FILE");
+		fclose(fp);
 		return;	
 	}
 	fwrite(p,sizeof(UserRecordLinkList),1,fp);
@@ -35,6 +36,7 @@ UserRecordLinkList *ReadRecordFile(){
         t->firstplayer = NULL;
         t->currentplayer = NULL;
         t->PlayerCounts = 0;
+        fclose(fp);
 		return t;
     }
    
@@ -55,13 +57,13 @@ UserRecordLinkList *ReadRecordFile(){
 		 pre = p;
     }
     p->next = NULL;
+    fclose(fp);
     return t;
     
 }
 //
 void SetCurrentUser(UserRecordLinkList *p,char currentplayerName[20]){
 	UserRecordNode *tp;
-	printf("This is set current user\n");
 	tp = p->firstplayer;
 	while(tp != NULL){
 		if(strcmp(currentplayerName,tp->playname)==0){
@@ -79,6 +81,7 @@ void SetCurrentUser(UserRecordLinkList *p,char currentplayerName[20]){
 	tp->next = NULL;
 	tp->next = p->firstplayer;
 	p->firstplayer = tp;
+	p->currentplayer = tp;
 	p->PlayerCounts++;
 }
 
@@ -122,8 +125,8 @@ void ReRank(UserRecordLinkList *p){
         tp = tq->next;
 		if(tq->score<tp->score){
 			tq->next = tp->next;
-			tp->next = tq;
 			p->firstplayer = tp;
+			tp->next = tq;
 		}
 		//冒泡比较剩余用户score
 		tq = p->firstplayer;
@@ -132,9 +135,10 @@ void ReRank(UserRecordLinkList *p){
 	    	if(tp->score < tp->next->score){
 	    		tq->next = tp->next;
 	    		tp->next = tp->next->next;
-	    		tp->next->next = tp;
+	    		tq->next->next = tp;
             }
-            tq = tp;
+            tp=tq->next;
+            tq=tp;
             tp = tp->next;
 	    }
 	}
@@ -195,6 +199,31 @@ void DeleteCurrentUser(UserRecordLinkList *p){
 	p->currentplayer = NULL;
 	free(tq);
 	return;
+}
+
+void DeleteUserByRank(UserRecordLinkList *p,int rank){
+	UserRecordNode *tp,*tq;
+	int i;
+	if (rank>p->PlayerCounts){
+		return;
+	}
+	//如果只有一个人 
+	if (rank==1){
+		tq=p->firstplayer;
+		p->firstplayer=tq->next;
+		free(tq);
+		p->PlayerCounts--;
+		return;
+	} 
+	//>=2 人 
+	tp=p->firstplayer;
+	for(i=1;i<rank-1;i++){
+		tp=tp->next;
+	}
+	tq=tp->next;
+	tp->next=tq->next;
+	p->PlayerCounts--;
+	free(tq); 
 }
 
 void WriteLastRecordFile(struct Tetris *p, int a[30][23])

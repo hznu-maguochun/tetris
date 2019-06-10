@@ -110,7 +110,9 @@ static struct {
 	{"Light Gray","Black",  "Dark Gray","Blue",0 },  // 
 	{"Light Gray","Black",  "Dark Gray","Yellow",1 },  // 野割
 	{"Brown",     "Red",    "Orange",   "Blue",0 },
-	{"Brown",     "Red",    "Orange",   "White",1 }   // 野割
+	{"Brown",     "Red",    "Orange",   "White",1 } , // 野割
+	{"Light Gray",    "Black","Black", "Light Gray" ,1}// 7
+	 
 },
 
 gs_menu_color = {

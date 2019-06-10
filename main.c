@@ -33,6 +33,9 @@ double winwidth, winheight;   // 窗口尺寸
 int game_running=0;
 int IF=0;
 struct Tetris t,*tetris=&t;
+int buttonTheme=7;
+int menuTheme=7;
+UserRecordLinkList *sysinfo;
 
 // 清屏函数，provided in libgraphics
 //void DisplayClear(void); 
@@ -54,7 +57,7 @@ void Main()
     InitGraphics();
     Randomize();/*初始化一个随机种子*/
     tetris->speed = 500;
-
+    sysinfo=ReadRecordFile();
     winwidth = GetWindowWidth();     //获取窗口宽度 
 	winheight = GetWindowHeight();   //获取窗口高度 
 

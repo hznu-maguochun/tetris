@@ -17,6 +17,7 @@
 
 #include "game.h"
 #include "imgui.h"
+#include "fileop.h"
 #include "interface.h"
 
 #define blocklength  0.3333333
@@ -24,6 +25,7 @@
 extern int IF;
 extern struct Tetris *tetris;
 extern int game_running;//跳转游戏界面flag和游戏运行状态
+extern UserRecordLinkList *sysinfo; 
 int Temp,Temp1,Temp2; 	//temp,temp1,temp2用于记住和转换方块变量的值
 bool pau;
 
@@ -51,7 +53,10 @@ void TimerEventProcess(int timerID)
 				Del_Fullline(tetris);
 				for(i=tetris->y-2;i<tetris->y+2;i++)
   				{
-				  if(i>=21)   exit(0);
+				  if(i>=20)   
+				  {
+				  	gameover(); 
+				  } 
   				}
 				tetris->flag = tetris->next;
 				Flag(tetris);
@@ -285,12 +290,29 @@ void MakePlayingWindow(struct Tetris *tetris)
 	SetPenColor("Magenta");
 	DrawTextString("Fun Tetris !!");
 	SetPointSize(20);
+		
+	
+	
+	
+	
+	
 	MovePen(6.5,5.5);
 	SetPenColor("Violet");
 	DrawTextString("Level:");
 	SetPenColor("Orange");
-
 	DrawTextString(l);
+	
+	//current player name
+	MovePen(7.5,5.5);
+	SetPenColor("Violet");
+	DrawTextString("Current Player:");
+	SetPenColor("Orange");
+	DrawTextString(sysinfo->currentplayer->playname);
+	
+	
+	
+	
+	
 	MovePen(6.5,5.0);
 	SetPenColor("Violet");
 	DrawTextString("Score:");
@@ -307,7 +329,7 @@ void MakePlayingWindow(struct Tetris *tetris)
 	MovePen(6.5,4.0);
 	SetPenColor("Violet");
 	DrawTextString("Next tetris:");
-	
+
 	SetPointSize(30);
 	MovePen(6.5,2.5);
 	SetPenColor("Magenta");

@@ -48,6 +48,7 @@ void ReRank(UserRecordLinkList *p);
 void ClearUserHistory(UserRecordNode *currentplayer);
 void ResetGameRecord(UserRecordLinkList *p);
 void DeleteCurrentUser(UserRecordLinkList *p);
+void DeleteUserByRank(UserRecordLinkList *p,int rank);
 
 void WriteLastRecordFile(struct Tetris *p, int a[30][23]);
 void ReadLastRecordFlietoMemory(struct Tetris *p, int a[30][23]);

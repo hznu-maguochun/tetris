@@ -33,7 +33,10 @@ static int show_more_buttons = 0; // 显示更多按钮
 extern int game_running;//跳转游戏界面flag和游戏运行状态
 extern int IF;
 extern bool pau;
-
+extern int buttonTheme;
+extern int menuTheme;
+extern UserRecordLinkList *sysinfo;
+static char playername[20]; 
 
 
 // 菜单演示程序
@@ -45,7 +48,6 @@ void drawMenu()
 
 	static char * menuListOP[] = {"Operate",
 		"Start | Ctrl-S",
-		"Continue",
 		"Rank"};
 	static char * menuListRunningOP[] = {"Operate",
 		"Stop",
@@ -60,7 +62,7 @@ void drawMenu()
 	double y = winheight;
 	double h = fH*1.5; // 控件高度
 	double w = TextStringWidth(menuListHelp[0])*3; // 控件宽度
-	double wlist = TextStringWidth(menuListOP[3])*3.2;
+	double wlist = TextStringWidth(menuListOP[0])*3.2;
 	double xindent = winheight/20; // 缩进
 	int    selection;
 
@@ -112,13 +114,7 @@ void drawMenu()
 				drawMenu();
 				drawButtons();
 				break;
-			case 2:
-				IF = 3;
-	    		DisplayClear();
-				drawMenu();
-			    drawButtons();
-			    break;
-			case 3:
+			case 2: 
 				IF = 8;
 	    		DisplayClear();
 				drawMenu();
@@ -163,32 +159,24 @@ void drawButtons()
 	double x = winwidth/2.5; 
 	double y = winheight/2;
 	double w = winwidth/5; // 控件宽度
-	char playername[20];
-	
+	static char playername[20]; 
 	SetPointSize(10);
-	usePredefinedButtonColors(0);
+	float value; 
+	
+	
 	
 	switch(IF){
 		case 0:
-			if (textbox(GenUIID(0),x-0.2-w, y+2*(h+0.2),  w,  h, playername, 20)) {
-				//此处设置当前用户名
-				
-				 
-			}
-			if( button(GenUIID(0), x, y+2*(h+0.2), w, h, "Start") )
+			
+			textbox(GenUIID(0),x, y+2*(h+0.2),  w,  h, playername, sizeof(playername));
+			
+			if( button(GenUIID(0), x, y+(h+0.2), w, h, "Start") )
 			{
 				IF=2; 
 				DisplayClear();
 				drawButtons();
 				break;
-			}
-			if( button(GenUIID(0), x, y+(h+0.2), w, h, "Continue") )
-			{
-				IF=3; 
-				DisplayClear();
-				drawButtons();
-				break;
-			}		
+			} 		
 		    if( button(GenUIID(0), x, y, w, h, "Settings") )
 			{
 				IF=1;
@@ -215,6 +203,7 @@ void drawButtons()
 			}
 			if( button(GenUIID(0), x, y-3*(h+0.2), w, h, "Quit") ){ 
 				IF=4;
+				drawMenu();
 				drawButtons();
 			}
 			break;
@@ -223,6 +212,8 @@ void drawButtons()
 			break; 
 		case 2: 
 		    game_running=1;
+		    SetCurrentUser(sysinfo,playername);
+		    tetris->score=sysinfo->currentplayer->score;
 			initial();
 			break;
 		case 3: 
@@ -245,6 +236,9 @@ void drawButtons()
 		case 8: 
 			Rank();
 			break;
+		case 9:
+			gameover();
+			break; 
 	}
 }
 #endif // #if defined(DEMO_BUTTON)
@@ -300,12 +294,27 @@ void introducewindow(void)
 
 void setting(void)
 {
+	if ( button(GenUIID(0), 3.5, 2, 1.2, 0.5, "Theme 0"))
+	{
+		buttonTheme=7;
+		menuTheme=7;
+	}
+	if( button(GenUIID(0), 4.7, 2, 1.2, 0.5, "Theme 1"))
+	{
+		buttonTheme=1;
+		menuTheme=1;
+	}
+	if( button(GenUIID(0), 5.9, 2, 1.2, 0.5, "Theme 2"))
+	{
+		buttonTheme=2;
+		menuTheme=2;
+	}
 	SetPointSize(30);
 	MovePen(2,4.63);
     SetPenColor("Violet");
 	DrawTextString("Speed: ");
 	SetPointSize(20);
-	usePredefinedButtonColors(2);
+	usePredefinedButtonColors(buttonTheme);
 	MovePen(2,2.63);
     SetPenColor("Violet");
 	DrawTextString("Current Speed:      "); 
@@ -314,7 +323,7 @@ void setting(void)
 			DrawTextString("Slow");
 			break;
 		case 250:
-			DrawTextString(" Mid");
+			DrawTextString("Middle");
 			break;
 		case 100:
 			DrawTextString("Fast");
@@ -323,24 +332,23 @@ void setting(void)
 	if( button(GenUIID(5), 3.5, 4.5, 1.2, 0.5, "Slow"))
 	{
 		changespeed(1);
-	SetPointSize(10);
+		SetPointSize(10);
 		display();
 	}
 	else if( button(GenUIID(5), 5, 4.5, 1.2, 0.5, "Middle"))
 	{
 		changespeed(2);
-	SetPointSize(10);
+		SetPointSize(10);
 		display();
 	}
 	else if( button(GenUIID(5), 6.5, 4.5, 1.2, 0.5, "Fast"))
 	{
 		changespeed(3);
-	SetPointSize(10);
+		SetPointSize(10);
 		display();
 	}
 	
 	SetPointSize(10);
-	setButtonColors("Orange", "Yellow", "Cyan", "Violet", 1);
 	if( button(GenUIID(4), 7, 1, 2.3, 0.6, "Back to Menu"))
 	{
 		IF=0; 
@@ -349,6 +357,31 @@ void setting(void)
 	}
 }
 
+void gameover(){
+	IF=9;
+	game_running=0;
+   //CleanTetris(tetris);
+   InitGraphics();
+	cancelTimer(1);
+	DisplayClear();
+	MovePen(4.5,4);
+	SetPointSize(35);
+	DrawTextString("Game Over");
+	SetPointSize(10);
+	if( button(GenUIID(0), 1, 1, 2, 0.6, "Back to Main Menu"))
+		{
+			IF=0;
+			ModifyUserScore(sysinfo,tetris->score,tetris->level);
+			WriteRecordFile(sysinfo);
+			display();
+		}
+	if( button(GenUIID(0), 7, 1, 2, 0.6, "QUIT"))
+		{
+			ModifyUserScore(sysinfo,tetris->score,tetris->level);
+			WriteRecordFile(sysinfo);
+			exit(-1);
+		}
+}
 void Endwindow(void)
 {
 	DisplayClear();
@@ -359,10 +392,14 @@ void Endwindow(void)
 	if( button(GenUIID(4), 1, 1, 2, 0.6, "Back to Main Menu"))
 		{
 			IF=0;
+			ModifyUserScore(sysinfo,tetris->score,tetris->level);
+			WriteRecordFile(sysinfo);
 			display();
 		}
-	else if( button(GenUIID(4), 7, 1, 2, 0.6, "QUIT"))
+	if( button(GenUIID(4), 7, 1, 2, 0.6, "QUIT"))
 		{
+			ModifyUserScore(sysinfo,tetris->score,tetris->level);
+			WriteRecordFile(sysinfo);
 			exit(-1);
 		}
 }
@@ -371,17 +408,32 @@ void Endwindow(void)
 
 void display()
 {
+	usePredefinedButtonColors(buttonTheme);
+	usePredefinedMenuColors(menuTheme);
 	//转入游戏界面
 	if(game_running)
 	{ 
 		SetPointSize(10);
-		if( button(GenUIID(0), 7.5, 0.4, 2, 0.6, "Back to Main Menu"))
+		if( button(GenUIID(0), 7.5, 0.4, 1.8, 0.5, "Exit"))
 		{
-			IF=0;
+			IF=4;
+			game_running=0;
 			CleanTetris(tetris);
 			InitGraphics();
-			game_running=0;
 			cancelTimer(1);
+			ModifyUserScore(sysinfo,tetris->score,tetris->level);
+			WriteRecordFile(sysinfo);
+			display();
+		}
+		if( button(GenUIID(0), 5.5, 0.4, 1.8, 0.5, "Back to Main Menu"))
+		{
+			IF=0;
+			game_running=0;
+			CleanTetris(tetris);
+			InitGraphics();
+			cancelTimer(1);
+			ModifyUserScore(sysinfo,tetris->score,tetris->level);
+			WriteRecordFile(sysinfo);
 			display();
 		}
 		
@@ -396,9 +448,10 @@ void display()
 
 void Rank()
 {
-	UserRecordLinkList *p;
 	UserRecordNode *tp;
-	int i,score;
+	int i=1;
+	char No[5],name[20],score[10];
+	double y;
 	char a[2],s[4];
 	SetPointSize(30);
     SetPenColor("Violet");
@@ -411,53 +464,37 @@ void Rank()
 	DrawTextString("Score");
 		
 	SetPointSize(20);
-	usePredefinedButtonColors(2);
+//	usePredefinedButtonColors(2);
 	MovePen(2, winwidth/2.5);
 	
-	p = ReadRecordFile();
-	tp = p->firstplayer;
-	
-	
-	for(i = 1;i<=p->PlayerCounts && i<=10;i++)
-	{
-		a[0] = i+48;
-		a[1] = 0;
-		MovePen(2.5, winheight-1-i);
-		DrawTextString(a);
-
-		MovePen(4, winheight-1-i);
-        DrawTextString(tp->playname);
-      
-		score = tp->score;
-		if(score>=1000)
-		{
-			s[0]=(score)/1000+48;
-			s[1]=(score%1000)/100+48;
-			s[2]=48;
-			s[3]=48;
-			s[4]=0;
-		}
-		else if(score>=100)
-		{
-			s[0]=48;
-			s[1]=(score)/100+48;
-			s[2]=(score%100)/10+48;
-			s[3]=48;
-			s[4]=0;
-		}
-		else 
-		{
-			s[0]=48; s[1]=48; s[2]=48; s[3]=48;
-			s[4]=0;
-		}
-		MovePen(6, winheight-1-i);
-		DrawTextString(s);
+	sysinfo = ReadRecordFile();
+	ReRank(sysinfo);
+	tp=sysinfo->firstplayer;
+	while(tp!=NULL&&i<10){
 		
-		tp = tp->next;
-    }
+    	SetPenColor("Violet");
+		sprintf(No,"%d",i);
+		sprintf(name,"%s",tp->playname);
+		sprintf(score,"%d",tp->score);
+		MovePen(2.5,winheight-1.25-i*0.5);
+		DrawTextString(No);
+		MovePen(4,winheight-1.25-i*0.5);
+		DrawTextString(name);
+		MovePen(6,winheight-1.25-i*0.5);
+		DrawTextString(score);
+		usePredefinedButtonColors(buttonTheme);
+		if (button(GenUIID(i), 7,winheight-1.25-i*0.5, 2, 0.3, "delete")){
+			DeleteUserByRank(sysinfo,i);
+			WriteRecordFile(sysinfo);
+			display();
+		}
+		i++;
+		tp=tp->next;
+	}
+	
     
-    SetPointSize(20);
-	if( button(GenUIID(4), 7, 1, 2, 1, "Back to Menu"))
+    SetPointSize(10);
+	if( button(GenUIID(4), 7, 1, 2, 0.6, "Back to Menu"))
 	{
 		IF=0;
 		//DisplayClear();
