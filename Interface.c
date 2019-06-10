@@ -163,12 +163,18 @@ void drawButtons()
 	double x = winwidth/2.5; 
 	double y = winheight/2;
 	double w = winwidth/5; // 控件宽度
+	char playername[20];
 	
 	SetPointSize(10);
 	usePredefinedButtonColors(0);
 	
 	switch(IF){
 		case 0:
+			if (textbox(GenUIID(0),x-0.2-w, y+2*(h+0.2),  w,  h, playername, 20)) {
+				//此处设置当前用户名
+				
+				 
+			}
 			if( button(GenUIID(0), x, y+2*(h+0.2), w, h, "Start") )
 			{
 				IF=2; 
@@ -369,7 +375,7 @@ void display()
 	if(game_running)
 	{ 
 		SetPointSize(10);
-	if( button(GenUIID(0), 7.5, 0.4, 2, 0.6, "Back to Main Menu"))
+		if( button(GenUIID(0), 7.5, 0.4, 2, 0.6, "Back to Main Menu"))
 		{
 			IF=0;
 			CleanTetris(tetris);
@@ -378,6 +384,7 @@ void display()
 			cancelTimer(1);
 			display();
 		}
+		
 		return;
 	}
 	DisplayClear();	

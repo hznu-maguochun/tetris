@@ -260,11 +260,14 @@ void MakePlayingWindow(struct Tetris *tetris)
      for(n=0;n<15;n++)   /*?e???u*/ 
 	{
 		a[n][0]=1;
-		SetPenColor("Dark Gray");
-		SetPenSize(3);
-		MovePen(0.16,0.16);
-		DrawLine(4.68,0);
-	} 
+	}
+	SetPenColor("Dark Gray");
+	SetPenSize(3);
+	MovePen(0.16,0.16);
+	DrawLine(4.68,0);
+	MovePen(0.16,7);
+	DrawLine(4.68,0);
+
 	for(n=0;n<22;n++)
 	{
 		a[0][n]=1;
@@ -324,7 +327,7 @@ void MakePlayingWindow(struct Tetris *tetris)
 	
 	SetPenColor("Black");
 	
-
+	display(); 
 			
 	
 }
